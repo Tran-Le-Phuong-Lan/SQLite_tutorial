@@ -4,6 +4,10 @@
 
 1. https://www.sqlitetutorial.net/sqlite-python/
 
+## SQLite index for searching
+
+1. https://www.sqlitetutorial.net/sqlite-index/
+
 ## SQLite for fts5
 
 1. https://sqlite.org/fts5.html
