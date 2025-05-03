@@ -12,4 +12,8 @@
 
 ## Experiment 3
 
-1. Import data from json file into sql database: normal sql table and vector table by `sqlite-vec` 
+1. Import data from json file into sql database: normal sql table (`meta_data_embeddings`) and vector table (`vec_items`) by `sqlite-vec` 
+
+## Experiment 4
+
+1. Query from table (`meta_data_embeddings`) and vector table (`vec_items`) by `sqlite-vec`
