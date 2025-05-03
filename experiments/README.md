@@ -14,6 +14,8 @@
 
 1. Import data from json file into sql database: normal sql table (`meta_data_embeddings`) and vector table (`vec_items`) by `sqlite-vec` 
 
+2. Delete tables
+
 ## Experiment 4
 
-1. Query from table (`meta_data_embeddings`) and vector table (`vec_items`) by `sqlite-vec`
+1. Query from table (`meta_data_embeddings`) and vector table (`vec_items`) by `sqlite-vec`: to retrieve `k-number` of relevant text.

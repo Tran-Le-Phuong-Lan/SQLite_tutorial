@@ -48,7 +48,7 @@ try:
         FROM vec_items
         WHERE embedding MATCH ?
         ORDER BY distance
-        LIMIT 1
+        LIMIT 5
         """,
         [serialize_float32(query)],
         ).fetchall()
@@ -57,16 +57,20 @@ try:
         print(rows)
 
          # Check data in the mata table
-        meta_query = f"""
-        SELECT
-            claims
-        FROM meta_data_embeddings
-        WHERE rowid={int(rows[0][0] + 1)}
-        """
-        cursor = conn.cursor()
-        res = cursor.execute(meta_query)
-        print(f"{'='*10}")
-        print(res.fetchall())
+        with open('../query_result.txt', 'w') as file:
+            for i, tuple in enumerate(rows):
+                meta_query = f"""
+                SELECT
+                    title,
+                    claims
+                FROM meta_data_embeddings
+                WHERE rowid={int(tuple[0])}
+                """
+                cursor = conn.cursor()
+                res = cursor.execute(meta_query)
+                # print(res.fetchall()) # if we fetch here, there is nothing left to write to file later.
+                file.write(f"\n{'='*10}")
+                file.write(str(res.fetchall()))
 
 except sqlite3.OperationalError as e:
     print(e)

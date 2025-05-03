@@ -18,6 +18,7 @@ with open(json_file, 'r') as json_data:
 print(type(data),
       data[0].keys(),
       )
+database_len = len(data)
 
 embed_len = 0
 for key, value in data[0].items():
@@ -32,6 +33,7 @@ def create_table(conn: Connection):
 
     sql_statement = """
     CREATE TABLE IF NOT EXISTS meta_data_embeddings (
+            id INTEGER PRIMARY KEY,
             title TEXT NOT NULL, 
             claims TEXT NOT NULL, 
             ipc TEXT NOT NULL, 
@@ -43,7 +45,7 @@ def create_table(conn: Connection):
         cursor.execute(sql_statement)
         conn.commit()
     except:
-        print("Failed to create tables")
+        print("Failed to create meta table")
 
 def create_embed_table(conn: Connection, embedding_length: str):
 
@@ -64,8 +66,8 @@ def create_embed_table(conn: Connection, embedding_length: str):
 
 def add_to_meta_data_embeddings(conn: Connection, table_data):
     # insert table statement
-    sql = """ INSERT INTO meta_data_embeddings(title,claims,ipc,claims_length)
-              VALUES(?,?,?,?) 
+    sql = """ INSERT INTO meta_data_embeddings(id,title,claims,ipc,claims_length)
+              VALUES(?,?,?,?,?) 
             """
     try:
         # Create  a cursor
@@ -102,6 +104,28 @@ def add_embeddings(conn: Connection, table_data):
 
     # get the id of the last inserted row
     return cur.lastrowid
+
+def delete_embed_table(conn: Connection):
+    try:
+            conn.enable_load_extension(True) # start loading extensions
+            sqlite_vec.load(conn)
+            conn.enable_load_extension(True) # end loading extensions
+
+            sql = 'DROP TABLE IF EXISTS vec_items;'
+            cursor = conn.cursor()
+            cursor.execute(sql)
+            conn.commit()
+    except sqlite3.OperationalError as e:
+        print("Failed to delete to embedding table.")
+
+def delete_meta_table(conn: Connection):
+    try:
+            sql = 'DROP TABLE IF EXISTS meta_data_embeddings;'
+            cursor = conn.cursor()
+            cursor.execute(sql)
+            conn.commit()
+    except sqlite3.OperationalError as e:
+        print("Failed to delete to meta table.")
 #====
 # Create meta table
 #====
@@ -131,34 +155,60 @@ if create_embed_table_state == True:
 #====
 # Add to meta data of embedding table
 #====
-num_entries = 3
-add_data_state = False
+num_entries = database_len
+add_data_state = True
 if add_data_state == True:
     try:
         with sqlite3.connect(db_name) as conn:
         
             for i in range(0, num_entries):
-                add_to_meta_data_embeddings(conn, (data[i]['title'], 
+                add_to_meta_data_embeddings(conn, (int(i),
+                                                   data[i]['title'], 
                                                    data[i]['claims'], 
                                                    data[i]['ipc'], 
                                                    data[i]['claims_length']
                                                    )
                                             )
-            print("Successfully add data to table")
+            print("Successfully add data to meta table")
     except sqlite3.OperationalError as e:
-        print("Failed while adding data to table", e)
+        print("Failed to connect to db")
 
 #====
 # Add to embeddings data 
 #====
-add_embed_state = False
+add_embed_state = True
 if add_embed_state == True:
     try:
         with sqlite3.connect(db_name) as conn:
             for i in range(0, num_entries):
                 add_embeddings(conn,[i, serialize_float32(data[i]['embeddings'])])
+            print("Successfully add data to embed table")
     except sqlite3.OperationalError as e:
-        print("Failed while adding data to table", e)
+        print("Failed to connect to db")
+
+#====
+# Delete embeddings table
+#====
+del_embed_table_state = False
+if del_embed_table_state == True:
+    try:
+        with sqlite3.connect(db_name) as conn:
+            delete_embed_table(conn)
+            print("Successfully del embed table")
+    except sqlite3.OperationalError as e:
+        print("Failed to connect to db")
+
+#====
+# Delete meta table
+#====
+del_meta_table_state = False
+if del_meta_table_state == True:
+    try:
+        with sqlite3.connect(db_name) as conn:
+            delete_meta_table(conn)
+            print("Successfully del meta table")
+    except sqlite3.OperationalError as e:
+        print("Failed to connect to db")
 
 #====
 # check
@@ -176,39 +226,44 @@ try:
         ).fetchone()
         print(f"sqlite_version={sqlite_version}, vec_version={vec_version}")
 
-        # Check all available tables in the databse
-        cursor = conn.cursor()
-        res = cursor.execute("SELECT name FROM sqlite_master")
-        print(f"{'='*10}")
+        # Check the state of tables in db
+        cur = conn.cursor()
+        res = cur.execute("SELECT name FROM sqlite_master")
         print(res.fetchall())
 
-        # Check data in the embedding table
-        cursor = conn.cursor()
-        res = cursor.execute("SELECT * FROM vec_items_rowids")
-        print(f"{'='*10}")
-        print(res.fetchall())
+        # # Check all available tables in the databse
+        # cursor = conn.cursor()
+        # res = cursor.execute("SELECT name FROM sqlite_master")
+        # print(f"{'='*10}")
+        # print(res.fetchall())
 
-        # Check data in the mata table
-        meta_query = """
-        SELECT
-            rowid
-        FROM meta_data_embeddings
-        """
-        cursor = conn.cursor()
-        res = cursor.execute(meta_query)
-        print(f"{'='*10}")
-        print(res.fetchall())
+        # # Check data in the embedding table
+        # cursor = conn.cursor()
+        # res = cursor.execute("SELECT * FROM vec_items_rowids")
+        # print(f"{'='*10}")
+        # print(res.fetchall())
 
-        meta_query = """
-        SELECT
-            title
-        FROM meta_data_embeddings
-        WHERE rowid=1
-        """
-        cursor = conn.cursor()
-        res = cursor.execute(meta_query)
-        print(f"{'='*10}")
-        print(res.fetchall())
+        # # Check data in the mata table
+        # meta_query = """
+        # SELECT
+        #     rowid
+        # FROM meta_data_embeddings
+        # """
+        # cursor = conn.cursor()
+        # res = cursor.execute(meta_query)
+        # print(f"{'='*10}")
+        # print(res.fetchall())
+
+        # meta_query = """
+        # SELECT
+        #     title
+        # FROM meta_data_embeddings
+        # WHERE rowid=1
+        # """
+        # cursor = conn.cursor()
+        # res = cursor.execute(meta_query)
+        # print(f"{'='*10}")
+        # print(res.fetchall())
 
 except sqlite3.OperationalError as e:
     print(e)
