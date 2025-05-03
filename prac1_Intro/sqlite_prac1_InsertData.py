@@ -38,7 +38,7 @@ def add_task(conn, task):
 
 def main():
     try:
-        with sqlite3.connect('my.db') as conn:
+        with sqlite3.connect('../my.db') as conn:
             # add  a project
             project = ('Cool App with SQLite & Python', '2015-01-01', '2015-01-30')
             project_id = add_project(conn, project)

@@ -23,7 +23,7 @@ sql_statements = [
 
 # create a database connection
 try:
-    with sqlite3.connect('my.db') as conn:
+    with sqlite3.connect('../my.db') as conn:
         # create a cursor
         cursor = conn.cursor()
 

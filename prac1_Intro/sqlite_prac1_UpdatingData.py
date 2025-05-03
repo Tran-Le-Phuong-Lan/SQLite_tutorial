@@ -4,7 +4,7 @@ import sqlite3
 # ## For example, select the row whose `id`` = 2, and update its field `priority` to 2
 # sql = 'UPDATE tasks SET priority = ? WHERE id = ?'
 # try:
-#     with sqlite3.connect('my.db') as conn:
+#     with sqlite3.connect('../my.db') as conn:
 #         cursor = conn.cursor()
 #         cursor.execute(sql, (2,1) )
 #         conn.commit()
@@ -16,7 +16,7 @@ import sqlite3
 # sql = 'UPDATE tasks SET priority = ?, status_id = ? WHERE id = ?'
 
 # try:
-#     with sqlite3.connect('my.db') as conn:
+#     with sqlite3.connect('../my.db') as conn:
 #         cursor = conn.cursor()
 #         cursor.execute(sql, (3,2,1) )
 #         conn.commit()
@@ -28,7 +28,7 @@ import sqlite3
 # sql = 'UPDATE tasks SET end_date = ?'
 
 # try:
-#     with sqlite3.connect('my.db') as conn:
+#     with sqlite3.connect('../my.db') as conn:
 #         cursor = conn.cursor()
 #         cursor.execute(sql, ('2015-02-03',) )
 #         conn.commit()
