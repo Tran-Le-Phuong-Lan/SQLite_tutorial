@@ -4,6 +4,8 @@
 
 1. https://www.sqlitetutorial.net/sqlite-python/
 
+2. https://docs.python.org/3/library/sqlite3.html
+
 ## SQLite index for searching
 
 1. https://www.sqlitetutorial.net/sqlite-index/
