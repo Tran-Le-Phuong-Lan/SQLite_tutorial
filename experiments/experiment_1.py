@@ -1,14 +1,8 @@
 import sqlite3 
 import sqlite_vec 
-
-from typing import List
-import struct
+from sqlite_vec import serialize_float32
 
 create_vec_table = False
-
-def serialize_f32(vector: List[float]) -> bytes:
-    """serializes a list of floats into a compact "raw bytes" format"""
-    return struct.pack("%sf" % len(vector), *vector)
 
 try:
     with sqlite3.connect('../my.db') as conn:
@@ -42,7 +36,7 @@ try:
             for item in items:
                 conn.execute(
                     "INSERT INTO vec_items(rowid, embedding) VALUES (?, ?)",
-                    [item[0], serialize_f32(item[1])]
+                    [item[0], serialize_float32(item[1])]
                 )
 
             conn.commit()
@@ -59,7 +53,7 @@ try:
         ORDER BY distance
         LIMIT 3
         """,
-        [serialize_f32(query)],
+        [serialize_float32(query)],
         ).fetchall()
 
         print(f"{'='*10}")
