@@ -9,3 +9,7 @@
 ## Experiment 2
 
 1. Delete the vec table existing in the database.
+
+## Experiment 3
+
+1. Import data from json file into sql database: normal sql table and vector table by `sqlite-vec` 
