@@ -2,7 +2,7 @@ import sqlite3
 import sqlite_vec 
 from sqlite_vec import serialize_float32
 
-create_vec_table = False
+create_vec_table = True
 
 try:
     with sqlite3.connect('../my.db') as conn:
