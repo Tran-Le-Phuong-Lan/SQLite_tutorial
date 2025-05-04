@@ -44,9 +44,11 @@ try:
         """
         SELECT
             rowid,
-            distance
+            distance,
+            ipc
         FROM vec_items
         WHERE embedding MATCH ?
+            and ipc = 'D'
         ORDER BY distance
         LIMIT 5
         """,
@@ -61,6 +63,7 @@ try:
             for i, tuple in enumerate(rows):
                 meta_query = f"""
                 SELECT
+                    ipc,
                     title,
                     claims
                 FROM meta_data_embeddings
@@ -71,6 +74,6 @@ try:
                 # print(res.fetchall()) # if we fetch here, there is nothing left to write to file later.
                 file.write(f"\n{'='*10}")
                 file.write(str(res.fetchall()))
-
+                
 except sqlite3.OperationalError as e:
     print(e)

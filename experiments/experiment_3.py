@@ -33,10 +33,9 @@ def create_table(conn: Connection):
 
     sql_statement = """
     CREATE TABLE IF NOT EXISTS meta_data_embeddings (
-            id INTEGER PRIMARY KEY,
+            ipc TEXT,
             title TEXT NOT NULL, 
             claims TEXT NOT NULL, 
-            ipc TEXT NOT NULL, 
             claims_length INTEGER NOT NULL
         );
     """
@@ -56,7 +55,9 @@ def create_embed_table(conn: Connection, embedding_length: str):
         conn.enable_load_extension(True) # end loading extensions
 
         sql_statement = f"""
-        CREATE VIRTUAL TABLE vec_items USING vec0(embedding float[{embedding_length}]);
+        CREATE VIRTUAL TABLE vec_items USING vec0(
+            ipc TEXT partition key, 
+            embedding float[{embedding_length}]);
         """
         cursor = conn.cursor()
         cursor.execute(sql_statement)
@@ -64,9 +65,9 @@ def create_embed_table(conn: Connection, embedding_length: str):
     except:
         print("Failed to create embedding tables")
 
-def add_to_meta_data_embeddings(conn: Connection, table_data):
+def add_to_meta_data(conn: Connection, table_data):
     # insert table statement
-    sql = """ INSERT INTO meta_data_embeddings(id,title,claims,ipc,claims_length)
+    sql = """ INSERT INTO meta_data_embeddings(rowid,title,claims,claims_length,ipc)
               VALUES(?,?,?,?,?) 
             """
     try:
@@ -86,7 +87,7 @@ def add_to_meta_data_embeddings(conn: Connection, table_data):
 
 def add_embeddings(conn: Connection, table_data):
     # insert table statement
-    sql = "INSERT INTO vec_items(rowid, embedding) VALUES (?, ?)"
+    sql = "INSERT INTO vec_items(rowid, embedding, ipc) VALUES (?, ?, ?)"
     try:
         conn.enable_load_extension(True) # start loading extensions
         sqlite_vec.load(conn)
@@ -156,19 +157,19 @@ if create_embed_table_state == True:
 # Add to meta data of embedding table
 #====
 num_entries = database_len
-add_data_state = True
+add_data_state = False
 if add_data_state == True:
     try:
         with sqlite3.connect(db_name) as conn:
         
             for i in range(0, num_entries):
-                add_to_meta_data_embeddings(conn, (int(i),
-                                                   data[i]['title'], 
-                                                   data[i]['claims'], 
-                                                   data[i]['ipc'], 
-                                                   data[i]['claims_length']
-                                                   )
-                                            )
+                add_to_meta_data(conn, (int(i),
+                                        data[i]['title'], 
+                                        data[i]['claims'], 
+                                        data[i]['claims_length'],
+                                        data[i]['ipc']
+                                        )
+                                )
             print("Successfully add data to meta table")
     except sqlite3.OperationalError as e:
         print("Failed to connect to db")
@@ -176,16 +177,37 @@ if add_data_state == True:
 #====
 # Add to embeddings data 
 #====
-add_embed_state = True
+add_embed_state = False
 if add_embed_state == True:
     try:
         with sqlite3.connect(db_name) as conn:
             for i in range(0, num_entries):
-                add_embeddings(conn,[i, serialize_float32(data[i]['embeddings'])])
+                add_embeddings(conn,[i, serialize_float32(data[i]['embeddings']), data[i]['ipc']])
             print("Successfully add data to embed table")
     except sqlite3.OperationalError as e:
         print("Failed to connect to db")
 
+#====
+# Delete all tables in sqlite db
+# ref: https://stackoverflow.com/questions/525512/drop-all-tables-command
+# FAIL: `sqlite_master may not be modified`
+#====
+del_all_table_state = False
+if del_all_table_state == True:
+    try:
+        with sqlite3.connect(db_name) as conn:
+            conn.enable_load_extension(True) # start loading extensions
+            sqlite_vec.load(conn)
+            conn.enable_load_extension(True) # end loading extensions
+            sql = """delete from sqlite_master where type in ('table', 'index', 'trigger');"""
+            cursor = conn.cursor()
+            cursor.execute(sql)
+            conn.commit()
+            print("Successfully del all tables")
+    except sqlite3.OperationalError as e:
+        print("Fail reason:", e)
+
+# 
 #====
 # Delete embeddings table
 #====
